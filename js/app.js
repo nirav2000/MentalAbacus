@@ -8,6 +8,7 @@ const App = {
     sessionQuestions: [],
     sessionIndex: 0,
     sessionResults: [],
+    sessionAskedTexts: new Set(),
     streak: 0,
     sessionId: null,
     showingFeedback: false,
@@ -151,6 +152,7 @@ const App = {
         this.sessionQuestions = plan.questions;
         this.sessionIndex = 0;
         this.sessionResults = [];
+        this.sessionAskedTexts = new Set();
         this.streak = 0;
         this.sessionId = Storage.logSession(pid, {
             strategyFocus: specificStrategy ? specificStrategy.id : 'auto',
@@ -170,8 +172,17 @@ const App = {
         }
 
         const qPlan = this.sessionQuestions[this.sessionIndex];
-        const question = AdaptiveEngine.generateQuestion(qPlan.strategyId, this.currentPlayer.id);
+        let question = null;
+        for (let tries = 0; tries < 20; tries++) {
+            const q = AdaptiveEngine.generateQuestion(qPlan.strategyId, this.currentPlayer.id);
+            if (!q) break;
+            if (!this.sessionAskedTexts.has(q.questionText) || tries === 19) {
+                question = q;
+                break;
+            }
+        }
         if (!question) { this.sessionIndex++; this.nextQuestion(); return; }
+        this.sessionAskedTexts.add(question.questionText);
 
         this.currentQuestion = { ...question, strategyId: qPlan.strategyId };
         this.currentAnswer = '';
