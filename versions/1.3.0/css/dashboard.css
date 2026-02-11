@@ -1,0 +1,228 @@
+/* dashboard.css - Teacher/parent dashboard styles */
+
+/* Teacher dashboard header */
+.teacher-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #222;
+}
+
+.teacher-header h2 {
+    font-size: 1.2rem;
+}
+
+.teacher-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* Teacher sections */
+.teacher-section {
+    margin-bottom: 24px;
+}
+
+.teacher-section h3 {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #222;
+}
+
+/* Student grid */
+.teacher-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+@media (min-width: 500px) {
+    .teacher-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Student cards */
+.teacher-card {
+    background: var(--bg-card);
+    border: 1px solid #333;
+    border-radius: var(--radius);
+    padding: 14px;
+    transition: border-color 0.2s;
+}
+
+.teacher-card.status-struggling {
+    border-color: var(--error);
+}
+
+.teacher-card.status-developing {
+    border-color: var(--warning);
+}
+
+.teacher-card.status-good {
+    border-color: var(--success);
+}
+
+.teacher-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.teacher-student-name {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.teacher-status-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.teacher-status-badge.struggling {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--error);
+}
+
+.teacher-status-badge.developing {
+    background: rgba(255, 152, 0, 0.2);
+    color: var(--warning);
+}
+
+.teacher-status-badge.good {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.teacher-card-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.teacher-stat {
+    text-align: center;
+}
+
+.teacher-stat .val {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+}
+
+.teacher-stat .lbl {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.teacher-card-weak {
+    font-size: 0.75rem;
+    color: var(--warning);
+    padding-top: 6px;
+    border-top: 1px solid #333;
+}
+
+/* Strategy filter */
+.teacher-strategy-select {
+    margin-bottom: 12px;
+}
+
+.teacher-select {
+    background: var(--bg-input);
+    border: 1px solid #444;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-family: var(--font);
+    width: 100%;
+    outline: none;
+}
+
+.teacher-select:focus {
+    border-color: var(--accent);
+}
+
+/* Alert section */
+.teacher-alert {
+    background: rgba(244, 67, 54, 0.05);
+    border: 1px solid rgba(244, 67, 54, 0.2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+}
+
+.teacher-alert h3 {
+    color: var(--error);
+    border-bottom-color: rgba(244, 67, 54, 0.2);
+}
+
+.teacher-alert-row {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(244, 67, 54, 0.1);
+}
+
+.teacher-alert-row:last-child {
+    border-bottom: none;
+}
+
+/* PIN entry */
+.pin-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.pin-dialog {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 30px;
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+}
+
+.pin-dialog h3 {
+    margin-bottom: 16px;
+    color: var(--accent);
+}
+
+.pin-dialog input {
+    background: var(--bg-input);
+    border: 1px solid #444;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    text-align: center;
+    width: 100%;
+    letter-spacing: 8px;
+    font-family: var(--font);
+    outline: none;
+    margin-bottom: 16px;
+}
+
+.pin-dialog input:focus {
+    border-color: var(--accent);
+}
+
+.pin-error {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    display: none;
+}

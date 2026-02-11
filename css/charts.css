@@ -1,0 +1,133 @@
+/* charts.css - Chart and visual dashboard styles */
+
+.stats-weak-alert {
+    background: rgba(244, 67, 54, 0.08);
+    border: 1px solid rgba(244, 67, 54, 0.25);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+}
+
+.weak-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.weak-icon {
+    font-size: 1.5rem;
+}
+
+.weak-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--error);
+}
+
+.weak-detail {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Flagged questions */
+.flagged-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.flagged-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    margin-bottom: 4px;
+    font-size: 0.8rem;
+}
+
+.flagged-question {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 80px;
+}
+
+.flagged-strategy {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.flagged-answer {
+    color: var(--error);
+    font-size: 0.75rem;
+    text-align: right;
+}
+
+/* Session drill-down */
+.session-expandable {
+    cursor: pointer;
+}
+
+.log-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.log-expand-arrow {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+}
+
+.log-detail {
+    padding-top: 8px;
+    border-top: 1px solid #333;
+    margin-top: 8px;
+}
+
+.drill-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.drill-row:last-child {
+    border-bottom: none;
+}
+
+.drill-q {
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.drill-answer {
+    font-weight: 600;
+    min-width: 70px;
+    text-align: center;
+}
+
+.drill-answer.correct {
+    color: var(--success);
+}
+
+.drill-answer.incorrect {
+    color: var(--error);
+}
+
+.drill-time {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* SVG chart containers */
+.stats-section svg {
+    display: block;
+    margin: 0 auto;
+}
