@@ -64,14 +64,6 @@ const App = {
         document.getElementById('btn-back-home').addEventListener('click', () => this.showScreen('screen-home'));
         document.getElementById('btn-export-data').addEventListener('click', () => this.exportData());
 
-        // Version history
-        document.querySelectorAll('.version-link').forEach(el => {
-            el.addEventListener('click', () => this.showVersions());
-        });
-        document.getElementById('btn-back-from-versions').addEventListener('click', () => {
-            this.showScreen(this.currentPlayer ? 'screen-home' : 'screen-welcome');
-        });
-
         // Keyboard
         document.addEventListener('keydown', e => {
             if (!document.getElementById('screen-quiz').classList.contains('active')) return;
@@ -414,32 +406,6 @@ const App = {
 
         document.getElementById('stats-content').innerHTML = html;
         this.showScreen('screen-stats');
-    },
-
-    // ----- Version History -----
-
-    showVersions() {
-        const container = document.getElementById('versions-content');
-        let html = '';
-        VERSION_HISTORY.forEach(v => {
-            html += `
-            <div class="version-entry${v.current ? ' current' : ''}">
-                <div class="version-entry-header">
-                    <div>
-                        <span class="version-number">v${v.version}</span>
-                        ${v.current ? '<span class="version-badge">Current</span>' : ''}
-                    </div>
-                    <span class="version-date">${v.date}</span>
-                </div>
-                <div class="version-title">${v.title}</div>
-                <ul class="version-changes">
-                    ${v.changes.map(c => `<li>${c}</li>`).join('')}
-                </ul>
-                ${!v.current ? `<span class="version-archive-link" onclick="window.open('versions/${v.version}/index.html','_blank')">Open archived v${v.version}</span>` : ''}
-            </div>`;
-        });
-        container.innerHTML = html;
-        this.showScreen('screen-versions');
     },
 
     // ----- Export -----

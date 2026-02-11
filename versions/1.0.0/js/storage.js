@@ -145,11 +145,6 @@ const Storage = {
         };
         this._write(`players/${playerId}/questionLog/${qId}`, data);
 
-        // Maintain question log index
-        const qIndex = this._read(`players/${playerId}/questionLogIndex`) || [];
-        qIndex.push(qId);
-        this._write(`players/${playerId}/questionLogIndex`, qIndex);
-
         // Append to session's question list
         if (questionData.sessionId) {
             const session = this.getSession(playerId, questionData.sessionId);
@@ -162,11 +157,6 @@ const Storage = {
         return qId;
     },
 
-    getQuestionLog(playerId) {
-        const index = this._read(`players/${playerId}/questionLogIndex`) || [];
-        return index.map(id => this._read(`players/${playerId}/questionLog/${id}`)).filter(Boolean);
-    },
-
     // ----- Export -----
 
     exportAll(playerId) {
@@ -174,7 +164,6 @@ const Storage = {
             profile: this.getProfile(playerId),
             progress: this.getAllStrategyProgress(playerId),
             sessions: this.getSessions(playerId),
-            questionLog: this.getQuestionLog(playerId),
         };
     },
 };

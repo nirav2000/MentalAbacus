@@ -24,7 +24,7 @@
                 </div>
             </div>
         </div>
-        <div class="version-tag version-link" id="version-welcome"></div>
+        <div class="version-tag" id="version-welcome"></div>
     </div>
 
     <!-- Home / Strategy Select Screen -->
@@ -39,7 +39,7 @@
             <p class="home-hint">Auto-selects what you need to work on</p>
             <div class="strategy-grid" id="strategy-grid"></div>
         </div>
-        <div class="version-tag version-link" id="version-home"></div>
+        <div class="version-tag" id="version-home"></div>
     </div>
 
     <!-- Quiz Screen -->
@@ -99,22 +99,11 @@
         <div id="stats-content" class="stats-content"></div>
     </div>
 
-    <!-- Version History Screen -->
-    <div id="screen-versions" class="screen">
-        <div class="versions-header">
-            <button id="btn-back-from-versions" class="btn btn-icon">&larr;</button>
-            <h2>Version History</h2>
-            <div style="width:44px;"></div>
-        </div>
-        <div id="versions-content" class="versions-content"></div>
-    </div>
-
-    <!-- Load order matters: config first, then storage, generators, visuals, versions, engine, app last -->
+    <!-- Load order matters: config first, then storage, generators, visuals, engine, app last -->
     <script src="js/config.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/generators.js"></script>
     <script src="js/visuals.js"></script>
-    <script src="js/versions.js"></script>
     <script src="js/engine.js"></script>
     <script src="js/app.js"></script>
 </body>
