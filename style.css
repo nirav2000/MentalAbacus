@@ -76,14 +76,14 @@ html, body {
 }
 
 .btn-primary {
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
+    background: #ff6600; /* ORANGE - v1.8.3 verification */
+    color: #fff;
+    border-color: #ff6600;
     font-weight: 700;
 }
 
 .btn-primary:active {
-    background: var(--accent-dark);
+    background: #cc5200;
 }
 
 .btn-large {
