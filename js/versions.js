@@ -6,10 +6,23 @@
 
 const VERSION_HISTORY = [
     {
+        version: '1.8.2',
+        date: '2026-02-12',
+        title: 'Section Tabs - Simplified CSS Approach',
+        current: true,
+        changes: [
+            'VERIFICATION: Red background added to section-tabs to confirm CSS loading',
+            'Fixed: Completely rewrote section tab CSS with explicit values',
+            'Removed: All !important declarations for cleaner code',
+            'Changed: Explicit pixel values for height (52px), font-size (16px), padding',
+            'Changed: Explicit hex colors instead of CSS variables for debugging',
+        ],
+    },
+    {
         version: '1.8.1',
         date: '2026-02-12',
         title: 'Section Tabs Display Fix',
-        current: true,
+        current: false,
         changes: [
             'Fixed: Section tab buttons now display properly with min-height and flex centering',
             'Fixed: Removed appearance: none which was causing button collapse in some browsers',

@@ -1,6 +1,6 @@
 /* sw.js - Service worker for offline PWA support */
 
-const CACHE_NAME = 'mental-maths-v1.8.1';
+const CACHE_NAME = 'mental-maths-v1.8.2';
 
 const ASSETS = [
     './',
