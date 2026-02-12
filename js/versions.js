@@ -6,10 +6,21 @@
 
 const VERSION_HISTORY = [
     {
+        version: '1.9.0',
+        date: '2026-02-12',
+        title: 'Section Tabs Display Fix',
+        current: true,
+        changes: [
+            'Fixed: Section tabs now display correctly by removing incomplete inline styles',
+            'Improved: Section tabs use proper CSS classes for styling and active state management',
+            'Fixed: Section tab active state now toggles correctly when switching between Number Sense and Times Tables',
+        ],
+    },
+    {
         version: '1.8.0',
         date: '2026-02-12',
         title: 'Section Tabs Fix',
-        current: true,
+        current: false,
         changes: [
             'Fixed: Section tabs (Number Sense / Times Tables) now reliably display on all browsers',
             'Moved: Section tab CSS to main stylesheet with inline style fallback for cache resilience',
