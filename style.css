@@ -240,27 +240,31 @@ html, body {
 }
 
 .section-tab {
-    flex: 1;
-    background: var(--bg-secondary);
-    border: none;
-    color: var(--text-secondary);
-    font-family: var(--font);
-    font-size: 1.05rem;
-    font-weight: 700;
-    padding: 14px 8px;
-    min-height: 48px;
-    cursor: pointer;
-    text-align: center;
+    flex: 1 !important;
+    background: var(--bg-secondary) !important;
+    border: none !important;
+    color: var(--text-secondary) !important;
+    font-family: var(--font) !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    padding: 14px 8px !important;
+    min-height: 48px !important;
+    height: auto !important;
+    width: auto !important;
+    cursor: pointer !important;
+    text-align: center !important;
     transition: color 0.2s, background 0.2s;
-    line-height: 1.4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    line-height: 1.4 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .section-tab.active {
-    color: #000;
-    background: var(--accent);
+    color: #000 !important;
+    background: var(--accent) !important;
 }
 
 .section-tab:not(.active):active {
