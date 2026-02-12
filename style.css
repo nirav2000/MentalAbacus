@@ -253,6 +253,8 @@ html, body {
     transition: color 0.2s, background 0.2s;
     -webkit-appearance: none;
     appearance: none;
+    line-height: 1.4;
+    display: block;
 }
 
 .section-tab.active {
