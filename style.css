@@ -228,12 +228,15 @@ html, body {
 }
 
 /* ===== Home Section Tabs ===== */
+/* NOTE: These tabs were previously invisible due to low contrast (#1a1a1a buttons on #0a0a0a background)
+   Now using proper contrast with visible borders and the accent color for active state */
 .section-tabs {
     display: flex;
-    gap: 0;
+    gap: 8px;
+    padding: 8px;
     border: 2px solid var(--accent);
     border-radius: var(--radius);
-    overflow: hidden;
+    background: rgba(26, 26, 26, 0.5);
     margin-bottom: 20px;
     width: 100%;
     max-width: 500px;
@@ -241,27 +244,34 @@ html, body {
 
 .section-tab {
     flex: 1;
-    background: var(--bg-secondary);
-    border: none;
-    color: var(--text-secondary);
-    font-family: var(--font);
-    font-size: 1.05rem;
-    font-weight: 700;
-    padding: 14px 8px;
+    background: #2a2a2a; /* Lighter gray for visibility */
+    border: 1px solid #3a3a3a; /* Subtle border for definition */
+    color: #ccc; /* Brighter text */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 12px;
+    border-radius: 8px;
     cursor: pointer;
     text-align: center;
-    transition: color 0.2s, background 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
+    transition: all 0.2s ease;
 }
 
 .section-tab.active {
-    color: #000;
-    background: var(--accent);
+    background: var(--accent); /* Teal accent color */
+    color: #000; /* Dark text on light background */
+    border-color: var(--accent);
+    font-weight: 700;
 }
 
-.section-tab:not(.active):active {
-    background: var(--bg-card);
+.section-tab:hover {
+    background: #333;
+    border-color: #4a4a4a;
+}
+
+.section-tab.active:hover {
+    background: var(--accent);
+    opacity: 0.9;
 }
 
 .strategy-grid {

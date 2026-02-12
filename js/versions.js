@@ -6,10 +6,52 @@
 
 const VERSION_HISTORY = [
     {
+        version: '1.9.0',
+        date: '2026-02-12',
+        title: 'Section Tabs - Root Cause Fixed (CSS Contrast Issue)',
+        current: true,
+        changes: [
+            'ROOT CAUSE: Section tabs were ALWAYS rendering but invisible due to low contrast',
+            'PROBLEM: Dark gray buttons (#1a1a1a) on dark background (#0a0a0a) with no visible borders',
+            'WHAT WE TRIED (v1.8.0-1.8.3): HTML fallbacks, !important overrides, explicit sizing - none worked because tabs WERE rendering',
+            'SOLUTION: Applied proper color contrast - lighter gray (#2a2a2a) with visible borders and teal accent for active state',
+            'FIXED: Tabs now clearly visible with #ccc text on #2a2a2a background',
+            'FIXED: Active tab uses teal accent (#4ecdc4) with dark text for maximum visibility',
+            'FIXED: Restored proper button styling (was orange during debugging)',
+            'PREVENTION: Added CSS comment warning about contrast requirements',
+            'LESSON: Low contrast CSS can make elements invisible even when DOM/JS work correctly',
+        ],
+    },
+    {
+        version: '1.8.2',
+        date: '2026-02-12',
+        title: 'Section Tabs - Simplified CSS Approach',
+        current: false,
+        changes: [
+            'VERIFICATION: Red background added to section-tabs to confirm CSS loading',
+            'Fixed: Completely rewrote section tab CSS with explicit values',
+            'Removed: All !important declarations for cleaner code',
+            'Changed: Explicit pixel values for height (52px), font-size (16px), padding',
+            'Changed: Explicit hex colors instead of CSS variables for debugging',
+        ],
+    },
+    {
+        version: '1.8.1',
+        date: '2026-02-12',
+        title: 'Section Tabs Display Fix',
+        current: false,
+        changes: [
+            'Fixed: Section tab buttons now display properly with min-height and flex centering',
+            'Fixed: Removed appearance: none which was causing button collapse in some browsers',
+            'Fixed: Buttons now use flex display with centered content for reliable rendering',
+            'Improved: Section tabs work correctly across all browsers and devices',
+        ],
+    },
+    {
         version: '1.8.0',
         date: '2026-02-12',
         title: 'Section Tabs Fix',
-        current: true,
+        current: false,
         changes: [
             'Fixed: Section tabs (Number Sense / Times Tables) now reliably display on all browsers',
             'Moved: Section tab CSS to main stylesheet with inline style fallback for cache resilience',
