@@ -169,7 +169,7 @@ const App = {
 
     renderHome() {
         if (!this.currentPlayer) return;
-        document.getElementById('player-greeting').textContent = `Hi, ${this.currentPlayer.name}!`;
+        document.getElementById('player-greeting').textContent = `Hi me, ${this.currentPlayer.name}!`;
 
         // Update section tab active state
         document.querySelectorAll('.section-tab').forEach(tab => {
@@ -180,18 +180,18 @@ const App = {
         const grid = document.getElementById('strategy-grid');
         const hint = document.getElementById('home-hint');
 
-        if (this.activeSection === 'times-tables') {
+        // if (this.activeSection === 'times-tables') {
             hint.textContent = 'Choose a table or auto-practice';
             homeContent.innerHTML = '';
             this.renderTimesTablesGrid(grid);
-        } else {
-            hint.textContent = 'Auto-selects what you need to work on';
-            let html = '';
+        // } else {
+        //     hint.textContent = 'Auto-selects what you need to work on';
+        //     let html = '';
 
-            // Daily challenge card
-            if (Settings.get('dailyChallengeReminder', true)) {
-                html += DailyChallenge.renderCard(this.currentPlayer.id);
-            }
+        //     // Daily challenge card
+        //     if (Settings.get('dailyChallengeReminder', true)) {
+        //         html += DailyChallenge.renderCard(this.currentPlayer.id);
+        //     }
 
             // Active goals
             html += Goals.renderGoals(this.currentPlayer.id);
