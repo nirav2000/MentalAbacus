@@ -1,6 +1,6 @@
 /* sw.js - Service worker for offline PWA support */
 
-const CACHE_NAME = 'mental-maths-v1.8.4-debug-colors';
+const CACHE_NAME = 'mental-maths-v1.9.0-contrast-fix';
 
 const ASSETS = [
     './',
