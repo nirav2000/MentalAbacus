@@ -248,13 +248,14 @@ html, body {
     font-size: 1.05rem;
     font-weight: 700;
     padding: 14px 8px;
+    min-height: 48px;
     cursor: pointer;
     text-align: center;
     transition: color 0.2s, background 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
     line-height: 1.4;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .section-tab.active {

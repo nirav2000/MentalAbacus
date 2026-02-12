@@ -6,25 +6,15 @@
 
 const VERSION_HISTORY = [
     {
-        version: '1.10.0',
-        date: '2026-02-12',
-        title: 'Section Tabs CSS Fix',
-        current: true,
-        changes: [
-            'Fixed: Section tab buttons now display with proper height by adding line-height and display properties',
-            'Fixed: Resolved zero-height button issue caused by appearance: none without explicit line-height',
-            'Improved: Section tabs now render reliably across all browsers',
-        ],
-    },
-    {
-        version: '1.9.0',
+        version: '1.8.1',
         date: '2026-02-12',
         title: 'Section Tabs Display Fix',
-        current: false,
+        current: true,
         changes: [
-            'Fixed: Section tabs now display correctly by removing incomplete inline styles',
-            'Improved: Section tabs use proper CSS classes for styling and active state management',
-            'Fixed: Section tab active state now toggles correctly when switching between Number Sense and Times Tables',
+            'Fixed: Section tab buttons now display properly with min-height and flex centering',
+            'Fixed: Removed appearance: none which was causing button collapse in some browsers',
+            'Fixed: Buttons now use flex display with centered content for reliable rendering',
+            'Improved: Section tabs work correctly across all browsers and devices',
         ],
     },
     {
