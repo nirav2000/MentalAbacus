@@ -71,22 +71,43 @@ let wordProblemsScreenState = {
  * Initializes the expansion app.
  */
 function init() {
-  expansionData = loadExpansionData();
+  try {
+    console.log('Initializing expansion app...');
 
-  // Initialize navigation system
-  initNavigation(renderScreen);
+    expansionData = loadExpansionData();
+    console.log('Expansion data loaded:', expansionData);
 
-  // Check and update unlock status
-  const newUnlocks = checkUnlockStatus();
+    // Initialize navigation system
+    initNavigation(renderScreen);
+    console.log('Navigation initialized');
 
-  // Show unlock celebrations if any
-  if (newUnlocks && newUnlocks.length > 0) {
-    newUnlocks.forEach((unlock, index) => {
-      setTimeout(() => showUnlockNotification(unlock), index * 500);
-    });
+    // Check and update unlock status
+    const newUnlocks = checkUnlockStatus();
+    console.log('Unlock status checked:', newUnlocks);
+
+    // Show unlock celebrations if any
+    if (newUnlocks && newUnlocks.length > 0) {
+      newUnlocks.forEach((unlock, index) => {
+        setTimeout(() => showUnlockNotification(unlock), index * 500);
+      });
+    }
+
+    renderScreen('home');
+    console.log('Home screen rendered');
+  } catch (error) {
+    console.error('Error during initialization:', error);
+    const root = document.getElementById('expansion-root');
+    if (root) {
+      root.innerHTML = `
+        <div class="card">
+          <h2>Initialization Error</h2>
+          <p>An error occurred while loading the app:</p>
+          <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">${error.message}\n\n${error.stack}</pre>
+          <button class="btn btn-primary" onclick="location.reload()">Reload Page</button>
+        </div>
+      `;
+    }
   }
-
-  renderScreen('home');
 }
 
 /**
@@ -95,57 +116,75 @@ function init() {
  * @param {Object} params - Optional parameters for the screen
  */
 export function renderScreen(screenName, params = {}) {
-  currentScreen = screenName;
-  const root = document.getElementById('expansion-root');
+  try {
+    console.log(`Rendering screen: ${screenName}`, params);
+    currentScreen = screenName;
+    const root = document.getElementById('expansion-root');
 
-  if (!root) {
-    console.error('Expansion root element not found');
-    return;
-  }
+    if (!root) {
+      console.error('Expansion root element not found');
+      return;
+    }
 
-  // Update navigation UI
-  updateNavigation(screenName);
+    // Update navigation UI
+    updateNavigation(screenName);
 
-  // Clear current content
-  root.innerHTML = '';
+    // Clear current content
+    root.innerHTML = '';
 
-  // Render the appropriate screen
-  switch (screenName) {
-    case 'home':
-      renderHomeScreen(root);
-      break;
-    case 'addition-facts':
-      renderAdditionFactsScreen(root, params);
-      break;
-    case 'subtraction-facts':
-      renderSubtractionFactsScreen(root, params);
-      break;
-    case 'fact-grid':
-      renderFactGridScreen(root, params);
-      break;
-    case 'levels':
-      renderLevelsScreen(root);
-      break;
-    case 'methods':
-      renderMethodsScreen(root);
-      break;
-    case 'diagnostics':
-      renderDiagnosticsScreen(root, params);
-      break;
-    case 'remediation':
-      renderRemediationScreen(root, params);
-      break;
-    case 'visual-demo':
-      renderVisualDemoScreen(root);
-      break;
-    case 'progress':
-      renderProgressScreen(root);
-      break;
-    case 'word-problems':
-      renderWordProblemsScreen(root);
-      break;
-    default:
-      renderNotFoundScreen(root);
+    // Render the appropriate screen
+    switch (screenName) {
+      case 'home':
+        renderHomeScreen(root);
+        break;
+      case 'addition-facts':
+        renderAdditionFactsScreen(root, params);
+        break;
+      case 'subtraction-facts':
+        renderSubtractionFactsScreen(root, params);
+        break;
+      case 'fact-grid':
+        renderFactGridScreen(root, params);
+        break;
+      case 'levels':
+        renderLevelsScreen(root);
+        break;
+      case 'methods':
+        renderMethodsScreen(root);
+        break;
+      case 'diagnostics':
+        renderDiagnosticsScreen(root, params);
+        break;
+      case 'remediation':
+        renderRemediationScreen(root, params);
+        break;
+      case 'visual-demo':
+        renderVisualDemoScreen(root);
+        break;
+      case 'progress':
+        renderProgressScreen(root);
+        break;
+      case 'word-problems':
+        renderWordProblemsScreen(root);
+        break;
+      default:
+        renderNotFoundScreen(root);
+    }
+    console.log(`Screen ${screenName} rendered successfully`);
+  } catch (error) {
+    console.error(`Error rendering screen ${screenName}:`, error);
+    const root = document.getElementById('expansion-root');
+    if (root) {
+      root.innerHTML = `
+        <div class="card">
+          <h2>Rendering Error</h2>
+          <p>An error occurred while rendering the ${screenName} screen:</p>
+          <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">${error.message}\n\n${error.stack}</pre>
+          <button class="btn btn-primary" onclick="window.expansionApp.renderScreen('home')">Back to Home</button>
+          <button class="btn btn-secondary" onclick="location.reload()">Reload Page</button>
+        </div>
+      `;
+    }
   }
 }
 
@@ -1587,6 +1626,23 @@ export const expansionApp = {
 
 // Make available globally for HTML onclick handlers
 window.expansionApp = expansionApp;
+
+// Global error handler for module loading errors
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error || event.message);
+  const root = document.getElementById('expansion-root');
+  if (root && root.innerHTML.includes('Loading...')) {
+    root.innerHTML = `
+      <div class="card">
+        <h2>Loading Error</h2>
+        <p>An error occurred while loading the application:</p>
+        <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">${event.message || 'Unknown error'}\n\nFile: ${event.filename || 'Unknown'}\nLine: ${event.lineno || 'Unknown'}</pre>
+        <button class="btn btn-primary" onclick="location.reload()">Reload Page</button>
+        <a href="../index.html" class="btn btn-secondary">Back to Main App</a>
+      </div>
+    `;
+  }
+});
 
 // Auto-initialize when DOM is ready
 if (document.readyState === 'loading') {
