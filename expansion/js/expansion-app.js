@@ -260,34 +260,57 @@ function renderHomeScreen(root) {
     }
   ];
 
-  // Check for active misunderstandings
-  const activeMisunderstandings = getActiveMisunderstandings();
-  const highPriority = getRemediationPriority().slice(0, 3); // Top 3
+  // Check for active and resolved misunderstandings
+  const allMisunderstandings = getAllMisunderstandings();
+  const activeMisunderstandings = allMisunderstandings.filter(m => m.remediationStatus !== 'resolved');
+  const resolvedMisunderstandings = allMisunderstandings.filter(m => m.remediationStatus === 'resolved');
 
   const container = document.createElement('div');
   container.innerHTML = `
-    ${activeMisunderstandings.length > 0 ? `
-      <div class="alert-banner misunderstanding-alert">
-        <div class="alert-icon">⚠️</div>
-        <div class="alert-content">
-          <h3>We've Noticed Some Patterns</h3>
-          <p>We detected ${activeMisunderstandings.length} area${activeMisunderstandings.length > 1 ? 's' : ''} where focused practice could help:</p>
-          <ul class="misunderstanding-list">
-            ${highPriority.map(m => `
-              <li>
-                <strong>${m.name}</strong>
-                <span class="severity-badge severity-${m.severity}">${m.severity === 3 ? 'High' : m.severity === 2 ? 'Medium' : 'Low'} Priority</span>
-              </li>
-            `).join('')}
-          </ul>
-          <button class="btn btn-primary" onclick="window.expansionApp.renderScreen('diagnostics')">Review & Practice</button>
-        </div>
-      </div>
-    ` : ''}
     <div class="card">
       <h1>Mental Math Expansion</h1>
       <p>Welcome to the Addition & Subtraction mastery module. Choose a section to begin your learning journey.</p>
     </div>
+    ${activeMisunderstandings.length > 0 || resolvedMisunderstandings.length > 0 ? `
+      <div class="misunderstanding-centre">
+        <h2>🔍 Misunderstanding Centre</h2>
+        ${activeMisunderstandings.length > 0 ? `
+          <div class="active-misunderstandings">
+            <h3>Active Issues</h3>
+            <div class="misunderstanding-cards">
+              ${activeMisunderstandings.map(m => `
+                <div class="misunderstanding-card active">
+                  <div class="card-header">
+                    <span class="card-icon">⚠️</span>
+                    <span class="card-title">${m.name}</span>
+                  </div>
+                  <p class="card-description">${m.description || 'Detected from recent practice sessions'}</p>
+                  <button class="btn btn-primary btn-small" onclick="window.expansionApp.renderScreen('remediation', { misunderstandingId: '${m.id}' })">
+                    Work on this
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+        ${resolvedMisunderstandings.length > 0 ? `
+          <div class="resolved-misunderstandings">
+            <h3>Resolved ✓</h3>
+            <div class="misunderstanding-cards">
+              ${resolvedMisunderstandings.slice(0, 3).map(m => `
+                <div class="misunderstanding-card resolved">
+                  <div class="card-header">
+                    <span class="card-icon">✅</span>
+                    <span class="card-title">${m.name}</span>
+                  </div>
+                  <p class="card-description">Resolved on ${new Date(m.resolvedAt || Date.now()).toLocaleDateString('en-GB')}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
     <div class="card-grid" id="section-cards"></div>
   `;
 
