@@ -26,6 +26,7 @@ import { generateWordProblem, getAllCategories, getCategoryInfo } from './proble
 import { renderWordProblem, renderWordProblemResults } from './problems/word-problem-ui.js';
 import { checkUnlockStatus, isUnlocked, getNextToUnlock } from './progress/progression-rules.js';
 import { renderProgressionPath } from './progress/level-select-ui.js';
+import { renderProgressDashboard } from './progress/stats-view.js';
 import { initNavigation, navigateTo, goBack, updateNavigation } from './ui/navigation.js';
 
 // Current screen state
@@ -1534,27 +1535,8 @@ function renderVisualDemoScreen(root) {
 }
 
 function renderProgressScreen(root) {
-  const progressionPath = renderProgressionPath(
-    // onLevelSelect
-    (levelId) => {
-      const levelNum = parseInt(levelId.replace('level', ''));
-      renderScreen('levels');
-      // Pre-select the level
-      if (window.levelsScreenState) {
-        // Will be handled by levels screen
-      }
-    },
-    // onStrategySelect
-    (operation, strategyId) => {
-      renderScreen(operation === 'addition' ? 'addition-facts' : 'subtraction-facts', { strategy: strategyId });
-    },
-    // onMethodSelect
-    (methodId) => {
-      renderScreen('methods');
-    }
-  );
-
-  root.appendChild(progressionPath);
+  const dashboard = renderProgressDashboard();
+  root.appendChild(dashboard);
 }
 
 function renderNotFoundScreen(root) {
