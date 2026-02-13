@@ -20,6 +20,8 @@ import { getApplicableMethods } from './methods/method-selector.js';
 import { renderMethodCards } from './methods/method-cards.js';
 import { renderComparison } from './methods/method-comparison.js';
 import { renderSteps } from './ui/step-display.js';
+import { generateProblem, generateProblemSet } from './problems/problem-generator.js';
+import { adjustDifficulty, selectNextProblem, shouldUnlockNextLevel, calculatePracticeSessionStats } from './problems/difficulty-engine.js';
 
 // Current screen state
 let currentScreen = 'home';
@@ -35,6 +37,18 @@ let methodsScreenState = {
   currentStep: 0,
   solution: null,
   showingComparison: false
+};
+
+let levelsScreenState = {
+  level: null,
+  operation: null,
+  difficulty: 'medium',
+  currentProblem: null,
+  problemSet: [],
+  currentIndex: 0,
+  sessionResults: [],
+  startTime: null,
+  selectedMethod: null
 };
 
 /**
@@ -539,7 +553,268 @@ function renderFactGridScreen(root, params = {}) {
 }
 
 function renderLevelsScreen(root) {
-  renderComingSoon(root, 'Progressive Levels');
+  if (!levelsScreenState.level) {
+    renderLevelSelection(root);
+  } else if (levelsScreenState.currentProblem && levelsScreenState.currentIndex < levelsScreenState.problemSet.length) {
+    renderPracticeProblem(root);
+  } else if (levelsScreenState.sessionResults.length > 0) {
+    renderPracticeResults(root);
+  } else {
+    renderLevelSelection(root);
+  }
+}
+
+function renderLevelSelection(root) {
+  const levels = [
+    { num: 2, name: 'Two-digit ± Single-digit', examples: '34 + 7, 52 - 8', unlocked: true },
+    { num: 3, name: 'Two-digit ± Two-digit', examples: '47 + 35, 82 - 46', unlocked: true },
+    { num: 4, name: 'Three-digit Numbers', examples: '347 + 256, 503 - 187', unlocked: true },
+    { num: 5, name: 'Four-digit and Beyond', examples: '4,372 + 1,859', unlocked: true }
+  ];
+
+  root.innerHTML = `
+    <div class="card">
+      <h1>Progressive Practice Levels 📈</h1>
+      <p>Practice arithmetic with increasingly larger numbers. Choose a level to begin!</p>
+    </div>
+    <div class="card">
+      <h2>Select a Level</h2>
+      <div class="level-cards">
+        ${levels.map(level => `
+          <div class="level-card ${level.unlocked ? '' : 'locked'}" data-level="${level.num}">
+            <div class="level-header">
+              <div class="level-number">Level ${level.num}</div>
+              ${level.unlocked ? '<span class="level-status unlocked">✓ Unlocked</span>' : '<span class="level-status locked">🔒 Locked</span>'}
+            </div>
+            <h3>${level.name}</h3>
+            <p class="level-examples">${level.examples}</p>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.level-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const level = parseInt(card.dataset.level);
+      showOperationChoice(root, level);
+    });
+  });
+}
+
+function showOperationChoice(root, level) {
+  root.innerHTML = `
+    <div class="card">
+      <h2>Level ${level} Practice</h2>
+      <p>Choose which operation to practice:</p>
+      <div class="operation-choice">
+        <button class="btn btn-large" data-op="+">
+          <span class="op-icon">➕</span>
+          <span class="op-name">Addition</span>
+        </button>
+        <button class="btn btn-large" data-op="-">
+          <span class="op-icon">➖</span>
+          <span class="op-name">Subtraction</span>
+        </button>
+        <button class="btn btn-large" data-op="mixed">
+          <span class="op-icon">🔀</span>
+          <span class="op-name">Mixed</span>
+        </button>
+      </div>
+      <button class="btn btn-secondary" id="back-to-levels">← Back to Levels</button>
+    </div>
+  `;
+
+  document.querySelectorAll('.operation-choice button[data-op]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const operation = btn.dataset.op;
+      startPracticeSession(level, operation);
+      renderScreen('levels');
+    });
+  });
+
+  document.getElementById('back-to-levels').addEventListener('click', () => {
+    levelsScreenState = { level: null, operation: null, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], startTime: null, selectedMethod: null };
+    renderScreen('levels');
+  });
+}
+
+function startPracticeSession(level, operation) {
+  const difficulty = 'medium'; // Start at medium, will adapt
+  const count = 10;
+  const actualOp = operation === 'mixed' ? (Math.random() > 0.5 ? '+' : '-') : operation;
+  const problemSet = generateProblemSet(level, actualOp, difficulty, count);
+
+  levelsScreenState = {
+    level,
+    operation,
+    difficulty,
+    currentProblem: problemSet[0],
+    problemSet,
+    currentIndex: 0,
+    sessionResults: [],
+    startTime: Date.now(),
+    selectedMethod: null
+  };
+}
+
+function renderPracticeProblem(root) {
+  const { level, currentProblem, currentIndex, problemSet, sessionResults } = levelsScreenState;
+  const { a, operation, b, answer } = currentProblem;
+  const progress = currentIndex + 1;
+  const total = problemSet.length;
+
+  root.innerHTML = `
+    <div class="practice-header">
+      <div class="practice-info">
+        <span class="level-badge">Level ${level}</span>
+        <span class="progress-badge">Problem ${progress} / ${total}</span>
+      </div>
+      <button class="btn btn-secondary btn-small" id="end-practice">End Practice</button>
+    </div>
+    <div class="card practice-card">
+      <div class="problem-display">
+        <div class="problem-equation">${a} ${operation} ${b} = ?</div>
+      </div>
+      <div class="answer-input-section">
+        <input type="number" id="answer-input" class="answer-input" placeholder="Your answer" autofocus />
+        <button class="btn btn-primary btn-large" id="submit-answer">Check Answer</button>
+      </div>
+      <div id="feedback-area" class="feedback-area"></div>
+    </div>
+    <div class="session-stats-mini">
+      <div class="stat-item">
+        <div class="stat-value">${sessionResults.filter(r => r.correct).length}</div>
+        <div class="stat-label">Correct</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">${sessionResults.filter(r => !r.correct).length}</div>
+        <div class="stat-label">Incorrect</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">${sessionResults.length > 0 ? Math.round((sessionResults.filter(r => r.correct).length / sessionResults.length) * 100) : 0}%</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+    </div>
+  `;
+
+  const submitAnswer = () => {
+    const userAnswer = parseInt(document.getElementById('answer-input').value);
+    if (isNaN(userAnswer)) return;
+
+    const correct = userAnswer === answer;
+    const timeSeconds = (Date.now() - levelsScreenState.startTime) / 1000;
+
+    levelsScreenState.sessionResults.push({
+      problem: currentProblem,
+      userAnswer,
+      correct,
+      timeSeconds: timeSeconds / (currentIndex + 1),
+      timestamp: Date.now()
+    });
+
+    const feedbackArea = document.getElementById('feedback-area');
+    if (correct) {
+      feedbackArea.innerHTML = '<div class="feedback-correct"><span class="feedback-icon">✓</span><span class="feedback-text">Correct!</span></div>';
+      feedbackArea.className = 'feedback-area feedback-correct-anim';
+    } else {
+      feedbackArea.innerHTML = `<div class="feedback-incorrect"><span class="feedback-icon">✗</span><span class="feedback-text">Not quite. The answer is ${answer}</span></div>`;
+      feedbackArea.className = 'feedback-area feedback-incorrect-anim';
+    }
+
+    document.getElementById('submit-answer').textContent = 'Next Problem →';
+    document.getElementById('submit-answer').onclick = () => {
+      levelsScreenState.currentIndex++;
+      if (levelsScreenState.currentIndex < levelsScreenState.problemSet.length) {
+        levelsScreenState.currentProblem = levelsScreenState.problemSet[levelsScreenState.currentIndex];
+        renderScreen('levels');
+      } else {
+        renderScreen('levels');
+      }
+    };
+    document.getElementById('answer-input').disabled = true;
+  };
+
+  document.getElementById('submit-answer').addEventListener('click', submitAnswer);
+  document.getElementById('answer-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') submitAnswer();
+  });
+
+  document.getElementById('end-practice').addEventListener('click', () => {
+    if (sessionResults.length > 0) {
+      renderScreen('levels');
+    } else {
+      levelsScreenState = { level: null, operation: null, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], startTime: null, selectedMethod: null };
+      renderScreen('levels');
+    }
+  });
+
+  setTimeout(() => document.getElementById('answer-input').focus(), 100);
+}
+
+function renderPracticeResults(root) {
+  const { level, operation, sessionResults } = levelsScreenState;
+  const stats = calculatePracticeSessionStats(sessionResults);
+  const unlockNext = shouldUnlockNextLevel(sessionResults, level);
+
+  root.innerHTML = `
+    <div class="card results-card">
+      <h1>Practice Complete! 🎉</h1>
+      <div class="results-summary">
+        <div class="result-stat-large">
+          <div class="stat-value-large">${Math.round(stats.accuracy * 100)}%</div>
+          <div class="stat-label-large">Accuracy</div>
+        </div>
+        <div class="results-breakdown">
+          <div class="breakdown-item">
+            <span class="breakdown-icon">✓</span>
+            <span class="breakdown-text">${stats.correct} Correct</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-icon">✗</span>
+            <span class="breakdown-text">${stats.incorrect} Incorrect</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-icon">⏱</span>
+            <span class="breakdown-text">${stats.avgTime.toFixed(1)}s average</span>
+          </div>
+        </div>
+      </div>
+      ${unlockNext ? `
+        <div class="unlock-banner">
+          <div class="unlock-icon">🎊</div>
+          <div class="unlock-text">
+            <strong>Level ${level + 1} Unlocked!</strong>
+            <p>Great work! You're ready for the next challenge.</p>
+          </div>
+        </div>
+      ` : stats.accuracy < 0.7 ? `
+        <div class="encouragement-banner">
+          <p>Keep practicing! You're building important skills.</p>
+        </div>
+      ` : ''}
+      <div class="button-group">
+        <button class="btn btn-primary" id="practice-again">Practice Again</button>
+        <button class="btn btn-secondary" id="back-to-levels">Choose Different Level</button>
+        <button class="btn btn-secondary" id="back-home">Back to Home</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('practice-again').addEventListener('click', () => {
+    startPracticeSession(level, operation);
+    renderScreen('levels');
+  });
+
+  document.getElementById('back-to-levels').addEventListener('click', () => {
+    levelsScreenState = { level: null, operation: null, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], startTime: null, selectedMethod: null };
+    renderScreen('levels');
+  });
+
+  document.getElementById('back-home').addEventListener('click', () => {
+    levelsScreenState = { level: null, operation: null, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], startTime: null, selectedMethod: null };
+    renderScreen('home');
+  });
 }
 
 function renderMethodsScreen(root) {
