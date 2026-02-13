@@ -24,6 +24,8 @@ import { generateProblem, generateProblemSet } from './problems/problem-generato
 import { adjustDifficulty, selectNextProblem, shouldUnlockNextLevel, calculatePracticeSessionStats } from './problems/difficulty-engine.js';
 import { generateWordProblem, getAllCategories, getCategoryInfo } from './problems/word-problem-engine.js';
 import { renderWordProblem, renderWordProblemResults } from './problems/word-problem-ui.js';
+import { checkUnlockStatus, isUnlocked, getNextToUnlock } from './progress/progression-rules.js';
+import { renderProgressionPath } from './progress/level-select-ui.js';
 
 // Current screen state
 let currentScreen = 'home';
@@ -69,6 +71,17 @@ let wordProblemsScreenState = {
  */
 function init() {
   expansionData = loadExpansionData();
+
+  // Check and update unlock status
+  const newUnlocks = checkUnlockStatus();
+
+  // Show unlock celebrations if any
+  if (newUnlocks && newUnlocks.length > 0) {
+    newUnlocks.forEach((unlock, index) => {
+      setTimeout(() => showUnlockNotification(unlock), index * 500);
+    });
+  }
+
   renderScreen('home');
 }
 
@@ -780,6 +793,9 @@ function renderPracticeResults(root) {
   const stats = calculatePracticeSessionStats(sessionResults);
   const unlockNext = shouldUnlockNextLevel(sessionResults, level);
 
+  // Check for unlocks after completing practice
+  runUnlockCheck();
+
   root.innerHTML = `
     <div class="card results-card">
       <h1>Practice Complete! 🎉</h1>
@@ -967,6 +983,9 @@ function renderWordProblemPractice(root) {
 function renderWordProblemSessionResults(root) {
   const { category, sessionResults, problemSet } = wordProblemsScreenState;
   const categoryInfo = getCategoryInfo(category);
+
+  // Check for unlocks after completing word problems
+  runUnlockCheck();
 
   const resultsContainer = renderWordProblemResults(sessionResults, problemSet.length);
   root.appendChild(resultsContainer);
@@ -1469,7 +1488,27 @@ function renderVisualDemoScreen(root) {
 }
 
 function renderProgressScreen(root) {
-  renderComingSoon(root, 'Progress Dashboard');
+  const progressionPath = renderProgressionPath(
+    // onLevelSelect
+    (levelId) => {
+      const levelNum = parseInt(levelId.replace('level', ''));
+      renderScreen('levels');
+      // Pre-select the level
+      if (window.levelsScreenState) {
+        // Will be handled by levels screen
+      }
+    },
+    // onStrategySelect
+    (operation, strategyId) => {
+      renderScreen(operation === 'addition' ? 'addition-facts' : 'subtraction-facts', { strategy: strategyId });
+    },
+    // onMethodSelect
+    (methodId) => {
+      renderScreen('methods');
+    }
+  );
+
+  root.appendChild(progressionPath);
 }
 
 function renderNotFoundScreen(root) {
@@ -1484,10 +1523,59 @@ function renderNotFoundScreen(root) {
   `;
 }
 
+// Helper function to show unlock notification
+function showUnlockNotification(unlock) {
+  const notification = document.createElement('div');
+  notification.className = 'unlock-notification';
+
+  const typeIcons = {
+    'strategy': '⭐',
+    'level': '🎊',
+    'method': '🧠',
+    'feature': '🎉'
+  };
+
+  const typeLabels = {
+    'strategy': 'Strategy Unlocked!',
+    'level': 'Level Unlocked!',
+    'method': 'Method Unlocked!',
+    'feature': 'Feature Unlocked!'
+  };
+
+  notification.innerHTML = `
+    <div class="unlock-icon">${typeIcons[unlock.type] || '🎉'}</div>
+    <div class="unlock-text">
+      <div class="unlock-title">${typeLabels[unlock.type] || 'Unlocked!'}</div>
+      <div class="unlock-subtitle">${unlock.name}</div>
+    </div>
+  `;
+
+  document.body.appendChild(notification);
+
+  // Remove after 4 seconds
+  setTimeout(() => {
+    notification.remove();
+  }, 4000);
+}
+
+// Helper function to run unlock check after practice
+export function runUnlockCheck() {
+  const newUnlocks = checkUnlockStatus();
+
+  if (newUnlocks && newUnlocks.length > 0) {
+    newUnlocks.forEach((unlock, index) => {
+      setTimeout(() => showUnlockNotification(unlock), index * 500);
+    });
+  }
+
+  return newUnlocks;
+}
+
 // Export public API
 export const expansionApp = {
   init,
-  renderScreen
+  renderScreen,
+  runUnlockCheck
 };
 
 // Make available globally for HTML onclick handlers
