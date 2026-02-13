@@ -202,7 +202,7 @@ export const themes = [
     names: ["the scouts", "the club", "Ella", "James"],
     verbs: { got: "earned", added: "pinned up", counted: "displayed", arrived: "were awarded" }
   }
-};
+];
 
 // Keywords for highlighting
 export const operationKeywords = {
