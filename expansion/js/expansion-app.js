@@ -22,6 +22,8 @@ import { renderComparison } from './methods/method-comparison.js';
 import { renderSteps } from './ui/step-display.js';
 import { generateProblem, generateProblemSet } from './problems/problem-generator.js';
 import { adjustDifficulty, selectNextProblem, shouldUnlockNextLevel, calculatePracticeSessionStats } from './problems/difficulty-engine.js';
+import { generateWordProblem, getAllCategories, getCategoryInfo } from './problems/word-problem-engine.js';
+import { renderWordProblem, renderWordProblemResults } from './problems/word-problem-ui.js';
 
 // Current screen state
 let currentScreen = 'home';
@@ -49,6 +51,17 @@ let levelsScreenState = {
   sessionResults: [],
   startTime: null,
   selectedMethod: null
+};
+
+let wordProblemsScreenState = {
+  category: null,
+  level: 3,
+  difficulty: 'medium',
+  currentProblem: null,
+  problemSet: [],
+  currentIndex: 0,
+  sessionResults: [],
+  scaffoldingLevel: 0
 };
 
 /**
@@ -108,6 +121,9 @@ export function renderScreen(screenName, params = {}) {
     case 'progress':
       renderProgressScreen(root);
       break;
+    case 'word-problems':
+      renderWordProblemsScreen(root);
+      break;
     default:
       renderNotFoundScreen(root);
   }
@@ -152,6 +168,13 @@ function renderHomeScreen(root) {
       title: 'Mental Math Methods',
       description: 'Learn different strategies for solving problems',
       icon: '🧠',
+      status: 'unlocked'
+    },
+    {
+      id: 'word-problems',
+      title: 'Word Problems',
+      description: 'Apply math skills to real-world situations',
+      icon: '📖',
       status: 'unlocked'
     },
     {
@@ -813,6 +836,164 @@ function renderPracticeResults(root) {
 
   document.getElementById('back-home').addEventListener('click', () => {
     levelsScreenState = { level: null, operation: null, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], startTime: null, selectedMethod: null };
+    renderScreen('home');
+  });
+}
+
+function renderWordProblemsScreen(root) {
+  if (!wordProblemsScreenState.category) {
+    renderCategorySelection(root);
+  } else if (wordProblemsScreenState.currentProblem && wordProblemsScreenState.currentIndex < wordProblemsScreenState.problemSet.length) {
+    renderWordProblemPractice(root);
+  } else if (wordProblemsScreenState.sessionResults.length > 0) {
+    renderWordProblemSessionResults(root);
+  } else {
+    renderCategorySelection(root);
+  }
+}
+
+function renderCategorySelection(root) {
+  const categories = getAllCategories();
+
+  root.innerHTML = `
+    <div class="card">
+      <h1>Word Problems 📖</h1>
+      <p>Apply your math skills to real-world situations. Choose a problem type to practice!</p>
+    </div>
+    <div class="card">
+      <h2>Select Problem Type</h2>
+      <div class="category-grid" id="category-grid"></div>
+    </div>
+  `;
+
+  const grid = document.getElementById('category-grid');
+
+  categories.forEach(category => {
+    const card = document.createElement('div');
+    card.className = 'category-card';
+    card.innerHTML = `
+      <div class="category-header">
+        <div class="category-name">${category.name}</div>
+        <div class="difficulty-badge ${category.difficulty}">${category.difficulty}</div>
+      </div>
+      <p class="category-description">${category.description}</p>
+      <span class="category-operation">${category.operation === 'mixed' ? 'Multiple operations' : category.operation === 'addition' ? 'Addition' : 'Subtraction'}</span>
+    `;
+
+    card.addEventListener('click', () => {
+      startWordProblemSession(category.id);
+      renderScreen('word-problems');
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function startWordProblemSession(category) {
+  const level = 3; // Default to level 3 (two-digit numbers)
+  const difficulty = 'medium';
+  const count = 5; // 5 word problems per session
+
+  const problemSet = [];
+  for (let i = 0; i < count; i++) {
+    problemSet.push(generateWordProblem(category, level, difficulty));
+  }
+
+  wordProblemsScreenState = {
+    category,
+    level,
+    difficulty,
+    currentProblem: problemSet[0],
+    problemSet,
+    currentIndex: 0,
+    sessionResults: [],
+    scaffoldingLevel: 0
+  };
+}
+
+function renderWordProblemPractice(root) {
+  const { currentProblem, currentIndex, problemSet, sessionResults, category } = wordProblemsScreenState;
+  const categoryInfo = getCategoryInfo(category);
+
+  const header = document.createElement('div');
+  header.className = 'practice-header';
+  header.innerHTML = `
+    <div class="practice-info">
+      <span class="level-badge">${categoryInfo.name}</span>
+      <span class="progress-badge">Problem ${currentIndex + 1} / ${problemSet.length}</span>
+    </div>
+    <button class="btn btn-secondary btn-small" id="end-word-practice">End Session</button>
+  `;
+  root.appendChild(header);
+
+  const problemContainer = renderWordProblem(currentProblem, {
+    onAnswer: (correct, userAnswer) => {
+      wordProblemsScreenState.sessionResults.push({
+        problem: currentProblem,
+        userAnswer,
+        correct,
+        scaffoldingLevel: wordProblemsScreenState.scaffoldingLevel,
+        timestamp: Date.now()
+      });
+
+      setTimeout(() => {
+        wordProblemsScreenState.currentIndex++;
+        wordProblemsScreenState.scaffoldingLevel = 0; // Reset scaffolding for next problem
+        if (wordProblemsScreenState.currentIndex < wordProblemsScreenState.problemSet.length) {
+          wordProblemsScreenState.currentProblem = wordProblemsScreenState.problemSet[wordProblemsScreenState.currentIndex];
+          renderScreen('word-problems');
+        } else {
+          renderScreen('word-problems');
+        }
+      }, correct ? 2000 : 3000);
+    },
+    onScaffoldingUsed: (level) => {
+      wordProblemsScreenState.scaffoldingLevel = Math.max(wordProblemsScreenState.scaffoldingLevel, level);
+    }
+  });
+
+  root.appendChild(problemContainer);
+
+  document.getElementById('end-word-practice').addEventListener('click', () => {
+    if (sessionResults.length > 0) {
+      renderScreen('word-problems');
+    } else {
+      wordProblemsScreenState = { category: null, level: 3, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], scaffoldingLevel: 0 };
+      renderScreen('word-problems');
+    }
+  });
+}
+
+function renderWordProblemSessionResults(root) {
+  const { category, sessionResults, problemSet } = wordProblemsScreenState;
+  const categoryInfo = getCategoryInfo(category);
+
+  const resultsContainer = renderWordProblemResults(sessionResults, problemSet.length);
+  root.appendChild(resultsContainer);
+
+  const buttonsDiv = document.createElement('div');
+  buttonsDiv.className = 'button-group';
+  buttonsDiv.style.marginTop = '2rem';
+  buttonsDiv.innerHTML = `
+    <button class="btn btn-primary" id="practice-same-category">Practice ${categoryInfo.name} Again</button>
+    <button class="btn btn-secondary" id="choose-different-category">Try Different Category</button>
+    <button class="btn btn-secondary" id="back-home-wp">Back to Home</button>
+  `;
+
+  resultsContainer.querySelector('.results-card').appendChild(buttonsDiv);
+
+  document.getElementById('practice-same-category').addEventListener('click', () => {
+    startWordProblemSession(category);
+    renderScreen('word-problems');
+  });
+
+  document.getElementById('choose-different-category').addEventListener('click', () => {
+    wordProblemsScreenState = { category: null, level: 3, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], scaffoldingLevel: 0 };
+    renderScreen('word-problems');
+  });
+
+  document.getElementById('back-home-wp').addEventListener('click', () => {
+    wordProblemsScreenState = { category: null, level: 3, difficulty: 'medium', currentProblem: null, problemSet: [], currentIndex: 0, sessionResults: [], scaffoldingLevel: 0 };
     renderScreen('home');
   });
 }
