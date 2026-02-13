@@ -14,14 +14,14 @@ const STORAGE_KEY = 'mentalMathExpansion';
  */
 function createDefaultData() {
   return {
-    version: '2.1.0',
+    version: '2.0.0',
     additionFacts: {
       strategyGroups: {
-        counting_on: { status: 'unlocked', percentComplete: 0 },
-        doubles: { status: 'unlocked', percentComplete: 0 },
-        doubles_near: { status: 'unlocked', percentComplete: 0 },
-        doubles_near_2: { status: 'unlocked', percentComplete: 0 },
-        making_10: { status: 'unlocked', percentComplete: 0 },
+        counting_on: { status: 'locked', percentComplete: 0 },
+        doubles: { status: 'locked', percentComplete: 0 },
+        doubles_near: { status: 'locked', percentComplete: 0 },
+        doubles_near_2: { status: 'locked', percentComplete: 0 },
+        making_10: { status: 'locked', percentComplete: 0 },
         bridge_through_10: { status: 'locked', percentComplete: 0 },
         commutative: { status: 'locked', percentComplete: 0 },
         adding_10: { status: 'locked', percentComplete: 0 },
