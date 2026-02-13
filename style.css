@@ -914,3 +914,96 @@ html, body {
         padding-bottom: calc(20px + env(safe-area-inset-bottom));
     }
 }
+
+/* Expansion Module Link Card */
+.expansion-link-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 2rem;
+}
+
+.expansion-link-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
+
+.expansion-card-content {
+    padding: 2rem;
+    text-align: center;
+    color: white;
+}
+
+.expansion-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.expansion-title {
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+    font-weight: 700;
+    color: white;
+}
+
+.expansion-description {
+    font-size: 1rem;
+    margin: 1rem 0 1.5rem 0;
+    opacity: 0.95;
+    line-height: 1.5;
+}
+
+.expansion-btn {
+    background: white !important;
+    color: #667eea !important;
+    font-weight: 700;
+    padding: 1rem 2rem !important;
+    font-size: 1.1rem !important;
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease !important;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.expansion-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .expansion-card-content {
+        padding: 1.5rem;
+    }
+
+    .expansion-icon {
+        font-size: 3rem;
+    }
+
+    .expansion-title {
+        font-size: 1.25rem;
+    }
+
+    .expansion-description {
+        font-size: 0.95rem;
+    }
+
+    .expansion-btn {
+        padding: 0.875rem 1.5rem !important;
+        font-size: 1rem !important;
+    }
+}

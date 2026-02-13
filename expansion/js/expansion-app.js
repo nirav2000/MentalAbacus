@@ -26,6 +26,7 @@ import { generateWordProblem, getAllCategories, getCategoryInfo } from './proble
 import { renderWordProblem, renderWordProblemResults } from './problems/word-problem-ui.js';
 import { checkUnlockStatus, isUnlocked, getNextToUnlock } from './progress/progression-rules.js';
 import { renderProgressionPath } from './progress/level-select-ui.js';
+import { initNavigation, navigateTo, goBack, updateNavigation } from './ui/navigation.js';
 
 // Current screen state
 let currentScreen = 'home';
@@ -72,6 +73,9 @@ let wordProblemsScreenState = {
 function init() {
   expansionData = loadExpansionData();
 
+  // Initialize navigation system
+  initNavigation(renderScreen);
+
   // Check and update unlock status
   const newUnlocks = checkUnlockStatus();
 
@@ -98,6 +102,9 @@ export function renderScreen(screenName, params = {}) {
     console.error('Expansion root element not found');
     return;
   }
+
+  // Update navigation UI
+  updateNavigation(screenName);
 
   // Clear current content
   root.innerHTML = '';

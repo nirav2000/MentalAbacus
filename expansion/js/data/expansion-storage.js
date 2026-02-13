@@ -14,7 +14,7 @@ const STORAGE_KEY = 'mentalMathExpansion';
  */
 function createDefaultData() {
   return {
-    version: '2.16.0',
+    version: '2.17.0',
     additionFacts: {
       strategyGroups: {
         counting_on: { status: 'unlocked', percentComplete: 0 },
