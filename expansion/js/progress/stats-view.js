@@ -162,7 +162,11 @@ function renderMisunderstandingTimeline() {
   section.className = 'progress-section';
   section.innerHTML = '<h3>Misunderstanding Timeline</h3>';
 
-  const issues = getAllMisunderstandings();
+  const { active, resolved } = getAllMisunderstandings();
+  const issues = [...active, ...resolved].sort((a, b) =>
+    new Date(b.detectedAt || 0) - new Date(a.detectedAt || 0)
+  );
+
   if (issues.length === 0) {
     section.innerHTML += '<p class="empty-state">No misunderstandings identified yet. Keep practicing!</p>';
     return section;
