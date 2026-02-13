@@ -1,0 +1,196 @@
+/**
+ * Visual Components Styles
+ * Styles for number lines, base-10 blocks, ten frames, bar models,
+ * part-whole models, and other mathematical visualizations.
+ */
+
+/* Visual Container */
+.visual-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.visual-title {
+  text-align: center;
+  color: var(--color-text);
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Number Line SVG */
+.number-line-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.number-line-svg .jump-arc {
+  animation: drawArc 0.5s ease-out;
+}
+
+.number-line-svg .jump-label {
+  animation: fadeIn 0.3s ease-in 0.3s both;
+}
+
+.number-line-svg .highlight-dot {
+  animation: pulse 0.5s ease-out;
+}
+
+@keyframes drawArc {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    r: 0;
+    opacity: 0;
+  }
+  50% {
+    r: 12;
+    opacity: 1;
+  }
+  100% {
+    r: 8;
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Ten Frame SVG */
+.ten-frame-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.ten-frame-svg .dot {
+  transition: opacity 0.3s ease;
+}
+
+.ten-frame rect {
+  transition: fill 0.2s ease;
+}
+
+.ten-frame rect:hover {
+  fill: #e0e0e0;
+}
+
+/* Base-10 Blocks SVG */
+.base10-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.base10-svg .block {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Part-Whole Model SVG */
+.part-whole-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.part-whole-svg circle {
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.part-whole-svg line {
+  transition: stroke 0.3s ease;
+}
+
+.part-whole-svg text {
+  transition: opacity 0.3s ease;
+}
+
+/* Visual Demo Cards */
+.visual-demo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.visual-demo-card {
+  background: var(--color-card);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.visual-demo-card h2 {
+  color: var(--color-text);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.visual-demo-card p {
+  color: var(--color-text-light);
+  margin-bottom: 1.5rem;
+}
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.demo-controls .btn {
+  min-width: 120px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .visual-container {
+    padding: 1rem;
+  }
+
+  .visual-title {
+    font-size: 1.1rem;
+  }
+
+  .visual-demo-card {
+    padding: 1.5rem;
+  }
+
+  .visual-demo-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .demo-controls {
+    flex-direction: column;
+  }
+
+  .demo-controls .btn {
+    width: 100%;
+  }
+}
