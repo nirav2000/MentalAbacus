@@ -261,9 +261,7 @@ function renderHomeScreen(root) {
   ];
 
   // Check for active and resolved misunderstandings
-  const allMisunderstandings = getAllMisunderstandings();
-  const activeMisunderstandings = allMisunderstandings.filter(m => m.remediationStatus !== 'resolved');
-  const resolvedMisunderstandings = allMisunderstandings.filter(m => m.remediationStatus === 'resolved');
+  const { active: activeMisunderstandings, resolved: resolvedMisunderstandings } = getAllMisunderstandings();
 
   const container = document.createElement('div');
   container.innerHTML = `
