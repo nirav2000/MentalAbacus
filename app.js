@@ -35,11 +35,22 @@
 
   // ---------- Abacus Engine ----------
   const AbacusEngine = (() => {
-    const COLS = 6;
-    const MAX = 10 ** COLS - 1;
+    const MIN_COLS = 3;
+    const MAX_COLS = 10;
+    const state = { cols: 6, digits: Array(6).fill(0) };
 
-    // Each column stores a digit 0-9. UI derives bead states from the digit.
-    const state = { digits: Array(COLS).fill(0) };
+    function getMax() {
+      return 10 ** state.cols - 1;
+    }
+
+    function resizeColumns(nextCols) {
+      const cols = clamp(Math.floor(nextCols || state.cols), MIN_COLS, MAX_COLS);
+      const current = getNumber();
+      state.cols = cols;
+      state.digits = Array(cols).fill(0);
+      setNumber(current);
+      return state.cols;
+    }
 
     function columnToDigit(col) {
       return state.digits[col];
@@ -61,8 +72,8 @@
     }
 
     function setNumber(n) {
-      let safe = clamp(Math.floor(Number(n) || 0), 0, MAX);
-      for (let i = 0; i < COLS; i++) {
+      let safe = clamp(Math.floor(Number(n) || 0), 0, getMax());
+      for (let i = 0; i < state.cols; i++) {
         setColumnDigit(i, safe % 10);
         safe = Math.floor(safe / 10);
       }
@@ -76,7 +87,7 @@
 
     // Carry/borrow naturally handled by whole-number arithmetic + re-decompose by digits.
     function applyDelta(delta) {
-      const next = clamp(getNumber() + Math.floor(Number(delta) || 0), 0, MAX);
+      const next = clamp(getNumber() + Math.floor(Number(delta) || 0), 0, getMax());
       return setNumber(next);
     }
 
@@ -103,16 +114,150 @@
     }
 
     return {
-      COLS,
-      MAX,
+      get COLS() { return state.cols; },
+      get MAX() { return getMax(); },
       getNumber,
       setNumber,
       clear,
       applyDelta,
       toggleUpper,
       toggleLower,
-      getColumns
+      getColumns,
+      resizeColumns,
+      MIN_COLS,
+      MAX_COLS
     };
+  })();
+
+  // ---------- Cognitive Forcing Model ----------
+  const CognitiveForcingModel = (() => {
+    function createState() {
+      return { attempts: 0, correct: 0, streak: 0, errors: 0, reflectionPrompts: [] };
+    }
+
+    function recordAttempt(state, payload) {
+      const next = state || createState();
+      next.attempts += 1;
+      if (payload.correct) {
+        next.correct += 1;
+        next.streak += 1;
+      } else {
+        next.errors += 1;
+        next.streak = 0;
+      }
+
+      const errorRate = next.attempts ? (next.errors / next.attempts) : 0;
+      const forcing = {
+        requireVerbalization: !payload.correct,
+        slowDown: errorRate > 0.3,
+        showComplementHint: payload.meta?.topic === 'make10' && !payload.correct,
+        reinforceCarryPattern: payload.meta?.highCarry && !payload.correct
+      };
+
+      if (!payload.correct) {
+        next.reflectionPrompts.unshift(`Pause: ${payload.problemText} -> think "bridge/complement" before moving.`);
+        next.reflectionPrompts = next.reflectionPrompts.slice(0, 5);
+      }
+
+      return { next, forcing };
+    }
+
+    return { createState, recordAttempt };
+  })();
+
+  // ---------- Forcing Difficulty Model ----------
+  const ForcingDifficultyModel = (() => {
+    const LEVELS = {
+      1: { carryWeight: 0.2, intervalMs: 1300, maxOperand: 9 },
+      2: { carryWeight: 0.35, intervalMs: 1100, maxOperand: 19 },
+      3: { carryWeight: 0.55, intervalMs: 900, maxOperand: 49 },
+      4: { carryWeight: 0.75, intervalMs: 750, maxOperand: 99 },
+      5: { carryWeight: 0.9, intervalMs: 600, maxOperand: 199 }
+    };
+
+    function clampLevel(level) {
+      return clamp(Math.floor(level || 1), 1, 5);
+    }
+
+    function recommendLevel(history, current = 1) {
+      if (!history?.length) return clampLevel(current);
+      const recent = history.slice(-8);
+      const accuracy = recent.filter((x) => x.correct).length / recent.length;
+      const avgTime = recent.reduce((a, x) => a + (x.timeSec || 0), 0) / recent.length;
+      let level = clampLevel(current);
+      if (accuracy > 0.82 && avgTime < 5) level += 1;
+      if (accuracy < 0.55) level -= 1;
+      return clampLevel(level);
+    }
+
+    function profile(level) {
+      return LEVELS[clampLevel(level)];
+    }
+
+    return { recommendLevel, profile, clampLevel };
+  })();
+
+  // ---------- High Carry Sequence Generator ----------
+  const HighCarrySequenceGenerator = (() => {
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generate(options = {}) {
+      const length = clamp(Math.floor(options.length || 6), 3, 24);
+      const difficulty = ForcingDifficultyModel.clampLevel(options.difficulty || 3);
+      const profile = ForcingDifficultyModel.profile(difficulty);
+      let running = clamp(Math.floor(options.start || 0), 0, AbacusEngine.MAX);
+      const sequence = [];
+
+      for (let i = 0; i < length; i++) {
+        const tail = running % 10;
+        const forceCarry = Math.random() < profile.carryWeight;
+        let delta;
+        if (forceCarry) {
+          const minDelta = Math.max(1, 10 - tail);
+          delta = rand(minDelta, Math.min(minDelta + 8, profile.maxOperand));
+        } else {
+          delta = rand(1, Math.min(9, profile.maxOperand));
+        }
+        if (running + delta > AbacusEngine.MAX) delta = Math.max(1, AbacusEngine.MAX - running);
+        running += delta;
+        sequence.push({ delta, result: running, highCarry: forceCarry && tail + delta >= 10 });
+      }
+
+      return sequence;
+    }
+
+    return { generate };
+  })();
+
+  // ---------- Mobile Abacus Module ----------
+  const MobileAbacus = (() => {
+    function isIPhoneWidth(width = window.innerWidth) {
+      return width <= 430;
+    }
+
+    function colsForValue(value, fallback = 6) {
+      const digits = String(Math.max(0, Math.floor(Number(value) || 0))).length;
+      return clamp(Math.max(digits, fallback), AbacusEngine.MIN_COLS, AbacusEngine.MAX_COLS);
+    }
+
+    function fitToIPhone(value = 0) {
+      const fallback = isIPhoneWidth() ? 4 : 6;
+      const cols = colsForValue(value, fallback);
+      AbacusEngine.resizeColumns(cols);
+      document.body.classList.toggle('iphone-abacus', isIPhoneWidth());
+      return cols;
+    }
+
+    function generateMemorySequence(length = 5, digits = 4) {
+      return Array.from({ length }, () => {
+        const max = 10 ** clamp(digits, 1, 6) - 1;
+        return Math.floor(Math.random() * (max + 1));
+      });
+    }
+
+    return { isIPhoneWidth, colsForValue, fitToIPhone, generateMemorySequence };
   })();
 
   // ---------- Drill & Curriculum Module ----------
@@ -211,6 +356,9 @@
       programQueue: [],
       programScore: { correct: 0, total: 0 },
       programStartedAt: null,
+      forcingState: CognitiveForcingModel.createState(),
+      attemptHistory: [],
+      forcingDifficulty: 1,
       dailyQueue: [],
       dailyStartedAt: null,
       dailyScore: { correct: 0, total: 0 }
@@ -308,6 +456,28 @@
       return AbacusEngine.getNumber();
     }
 
+    function updateForcingIndicator(extra = '') {
+      const profile = ForcingDifficultyModel.profile(uiState.forcingDifficulty);
+      const label = `Forcing L${uiState.forcingDifficulty} · carry ${(profile.carryWeight * 100).toFixed(0)}% · pace ${profile.intervalMs}ms`;
+      $('#forcing-indicator').textContent = extra ? `${label} · ${extra}` : label;
+    }
+
+    function recordForcingOutcome(payload) {
+      const startedAt = payload.startedAt || performance.now();
+      const timeSec = (performance.now() - startedAt) / 1000;
+      uiState.attemptHistory.push({ correct: payload.correct, timeSec });
+      uiState.attemptHistory = uiState.attemptHistory.slice(-20);
+      const { next, forcing } = CognitiveForcingModel.recordAttempt(uiState.forcingState, payload);
+      uiState.forcingState = next;
+      uiState.forcingDifficulty = ForcingDifficultyModel.recommendLevel(uiState.attemptHistory, uiState.forcingDifficulty);
+
+      const notes = [];
+      if (forcing.slowDown) notes.push('slow down + verbalize');
+      if (forcing.showComplementHint) notes.push('use complements');
+      if (forcing.reinforceCarryPattern) notes.push('focus carry bridge');
+      updateForcingIndicator(notes.join(', '));
+    }
+
     // ---------- Trainer Mode Logic ----------
     function renderProgramLesson() {
       const lesson = programLessons[uiState.programLesson];
@@ -348,6 +518,12 @@
 
         const userAnswer = readAbacusAnswer();
         const isCorrect = userAnswer === current.answer;
+        recordForcingOutcome({
+          correct: isCorrect,
+          problemText: `${current.a} ${current.op} ${current.b}`,
+          startedAt: uiState.programStartedAt,
+          meta: { topic: programLessons[uiState.programLesson]?.drillType, highCarry: Math.abs(current.b) >= 5 }
+        });
         uiState.programScore.total += 1;
         if (isCorrect) uiState.programScore.correct += 1;
 
@@ -485,6 +661,12 @@
         const user = readAbacusAnswer();
         const ok = user === uiState.quizCurrent.answer;
         const timeSec = (performance.now() - uiState.quizCurrent.startedAt) / 1000;
+        recordForcingOutcome({
+          correct: ok,
+          problemText: `0 ${uiState.quizCurrent.expr}`,
+          startedAt: uiState.quizCurrent.startedAt,
+          meta: { topic: 'mixed', highCarry: /\+9|\+8/.test(uiState.quizCurrent.expr) }
+        });
 
         const feedback = $('#quiz-feedback');
         feedback.className = `result ${ok ? 'good' : 'bad'}`;
@@ -503,10 +685,22 @@
     }
 
     function initFlashMode() {
+      $('#high-carry-seq-btn').addEventListener('click', () => {
+        const sequence = HighCarrySequenceGenerator.generate({
+          length: 8,
+          start: AbacusEngine.getNumber(),
+          difficulty: uiState.forcingDifficulty
+        });
+        $('#high-carry-seq-output').textContent = sequence
+          .map((item) => `${item.delta >= 0 ? '+' : ''}${item.delta}`)
+          .join('  ');
+      });
+
       $('#flash-start').addEventListener('click', async () => {
         if (uiState.flashRunning) return;
         const len = clamp(Number($('#flash-length').value || 6), 3, 15);
-        const interval = clamp(Number($('#flash-interval').value || 900), 300, 3000);
+        const recommended = ForcingDifficultyModel.profile(uiState.forcingDifficulty).intervalMs;
+        const interval = clamp(Number($('#flash-interval').value || recommended), 300, 3000);
         uiState.flashSeq = Array.from({ length: len }, () => Math.floor(Math.random() * 19) - 9);
         uiState.flashTotal = uiState.flashSeq.reduce((a, n) => a + n, 0);
         uiState.flashStartedAt = performance.now();
@@ -533,6 +727,12 @@
         e.preventDefault();
         const user = readAbacusAnswer();
         const ok = user === uiState.flashTotal;
+        recordForcingOutcome({
+          correct: ok,
+          problemText: `Flash total (${uiState.flashSeq.join(', ')})`,
+          startedAt: uiState.flashStartedAt,
+          meta: { topic: 'mixed', highCarry: uiState.flashSeq.some((x) => Math.abs(x) >= 8) }
+        });
         const feedback = $('#flash-feedback');
         feedback.className = `result ${ok ? 'good' : 'bad'}`;
         feedback.textContent = ok ? 'Great cadence accuracy!' : `Expected ${uiState.flashTotal}.`;
@@ -586,6 +786,12 @@
 
         const answer = readAbacusAnswer();
         const isCorrect = answer === current.answer;
+        recordForcingOutcome({
+          correct: isCorrect,
+          problemText: `${current.a} ${current.op} ${current.b}`,
+          startedAt: uiState.dailyStartedAt,
+          meta: { topic: 'daily', highCarry: current.op === '+' && ((current.a % 10) + current.b >= 10) }
+        });
         uiState.dailyScore.total += 1;
         if (isCorrect) uiState.dailyScore.correct += 1;
         uiState.dailyQueue.shift();
@@ -662,6 +868,7 @@
 
       $('#set-number-btn').addEventListener('click', () => {
         AbacusEngine.setNumber(Number($('#set-number-input').value));
+        MobileAbacus.fitToIPhone(AbacusEngine.getNumber());
         renderAbacus();
       });
 
@@ -674,6 +881,45 @@
         AbacusEngine.clear();
         renderAbacus();
       });
+
+      $('#mobile-fit-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const value = Number($('#mobile-fit-number').value || 0);
+        AbacusEngine.setNumber(value);
+        const cols = MobileAbacus.fitToIPhone(value);
+        renderAbacus();
+        $('#memory-flash-result').className = 'result';
+        $('#memory-flash-result').textContent = `Abacus resized to ${cols} columns for value ${AbacusEngine.getNumber()}.`;
+      });
+
+      $('#memory-flash-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const count = clamp(Number($('#memory-flash-count').value || 4), 2, 10);
+        const digits = clamp(Number($('#memory-flash-digits').value || 4), 1, 6);
+        const interval = clamp(Number($('#memory-flash-interval').value || 700), 250, 3000);
+        const sequence = MobileAbacus.generateMemorySequence(count, digits);
+        $('#memory-flash-result').className = 'result';
+        $('#memory-flash-result').textContent = 'Watch carefully...';
+
+        for (const value of sequence) {
+          AbacusEngine.setNumber(value);
+          MobileAbacus.fitToIPhone(value);
+          renderAbacus();
+          $('#memory-flash-display').textContent = String(value);
+          await new Promise((r) => setTimeout(r, interval));
+          $('#memory-flash-display').textContent = '•';
+          await new Promise((r) => setTimeout(r, 150));
+        }
+
+        $('#memory-flash-display').textContent = 'Enter the last number on abacus, then press OK in prompt.';
+        const user = prompt('What was the last number shown? Enter the value now.');
+        const expected = sequence[sequence.length - 1];
+        const ok = Number(user) === expected;
+        $('#memory-flash-result').className = `result ${ok ? 'good' : 'bad'}`;
+        $('#memory-flash-result').textContent = ok
+          ? `Correct memory recall: ${expected}.`
+          : `Expected ${expected}. Try a shorter interval.`;
+      });
     }
 
     function init() {
@@ -685,8 +931,10 @@
       initFlashMode();
       initDaily();
       renderDaily();
+      MobileAbacus.fitToIPhone(0);
       renderAbacus();
       renderStats();
+      updateForcingIndicator();
 
       // Expose helper tests in console.
       window.runAbacusTests = () => {

@@ -160,6 +160,26 @@ input, select {
   color: var(--muted);
 }
 
+.mobile-tools {
+  margin-top: 1rem;
+  border-top: 1px dashed var(--line);
+  padding-top: 0.75rem;
+}
+
+body.iphone-abacus .abacus-board {
+  grid-template-columns: repeat(2, minmax(52px, 1fr));
+  gap: 0.35rem;
+}
+
+body.iphone-abacus .rod {
+  min-height: 175px;
+}
+
+body.iphone-abacus .bead {
+  width: 30px;
+  height: 18px;
+}
+
 ul { padding-left: 1.2rem; }
 table {
   width: 100%;

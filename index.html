@@ -30,6 +30,7 @@
 
         <div id="program-mode" class="mode-panel is-active">
           <p>Start from absolute basics and progress lesson-by-lesson toward mental abacus fluency.</p>
+          <div class="muted" id="forcing-indicator">Forcing model: monitoring error patterns and carry/complement focus.</div>
           <div class="program-grid">
             <div>
               <h3 id="program-title">Lesson 1</h3>
@@ -107,6 +108,10 @@
             <button type="submit">Submit Abacus Total</button>
           </form>
           <div id="flash-feedback" class="result"></div>
+          <div class="row-gap">
+            <button type="button" id="high-carry-seq-btn">Generate High-Carry Sequence</button>
+          </div>
+          <div id="high-carry-seq-output" class="result"></div>
         </div>
       </div>
     </section>
@@ -144,6 +149,33 @@
           <button id="clear-abacus-btn" type="button">Clear</button>
         </div>
         <div id="abacus-board" class="abacus-board" aria-label="Abacus board"></div>
+        <div class="mobile-tools">
+          <h3>iPhone Fit + Memory Flash</h3>
+          <form id="mobile-fit-form" class="inline-form">
+            <label>
+              Target number
+              <input id="mobile-fit-number" type="number" min="0" max="999999" value="0" />
+            </label>
+            <button id="mobile-fit-btn" type="submit">Fit Abacus</button>
+          </form>
+          <form id="memory-flash-form" class="inline-form">
+            <label>
+              Count
+              <input id="memory-flash-count" type="number" min="2" max="10" value="4" />
+            </label>
+            <label>
+              Digits
+              <input id="memory-flash-digits" type="number" min="1" max="6" value="4" />
+            </label>
+            <label>
+              Interval (ms)
+              <input id="memory-flash-interval" type="number" min="250" max="3000" value="700" />
+            </label>
+            <button id="memory-flash-start" type="submit">Run Memory Flash</button>
+          </form>
+          <div id="memory-flash-display" class="problem">Memory flash ready.</div>
+          <div id="memory-flash-result" class="result"></div>
+        </div>
       </div>
     </section>
 
