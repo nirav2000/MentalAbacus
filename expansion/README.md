@@ -2,6 +2,8 @@
 
 Version 2.0.0
 
+Last updated: 2026-03-06
+
 ## Overview
 
 This expansion module extends the existing Mental Math application to include comprehensive addition and subtraction fact fluency training, plus a progressive number sense system that takes users from foundational single-digit facts all the way to solving multi-digit problems and word problems using multiple mental math strategies.
